@@ -97,17 +97,19 @@ cd backend && npm run start
 
 ## 部署方案：Vercel + Render
 
-前端部署到 Vercel，后端部署到 Render。Render 必须配置持久磁盘；SQLite 与上传资料都不能放在临时文件系统中。Render 默认文件系统在重启和部署后会丢失改动，而持久磁盘可保存指定挂载路径的数据。[Render 持久磁盘文档](https://render.com/docs/disks)
+前端部署到 Vercel，后端部署到 Render。当前 `render.yaml` 配置为 **Render Free 演示环境**，不需要付款方式；SQLite 数据与上传资料会在 Render 服务重启、休眠或重新部署后丢失，仅适合短期在线演示。
+
+如需长期保存项目数据与上传文件，请将 `render.yaml` 的 `plan` 改为 `starter`，并挂载 `/var/data` 持久磁盘；Render 默认文件系统是临时的，持久磁盘可保存指定路径的数据。[Render 持久磁盘文档](https://render.com/docs/disks)
 
 ### 1. 部署后端到 Render
 
 1. 将仓库推送到 GitHub、GitLab 或 Bitbucket。
 2. 在 Render 使用仓库根目录的 `render.yaml` 创建 Blueprint。
 3. 为服务配置 `CLIENT_ORIGIN`，值为 Vercel 生产域名，例如 `https://your-geekflow.vercel.app`。
-4. 保留 `DATABASE_URL=file:/var/data/geekflow.db` 与 `UPLOAD_DIR=/var/data/uploads`，并确认磁盘挂载在 `/var/data`。
+4. Free 演示环境保留 `DATABASE_URL=file:./geekflow-demo.db` 与 `UPLOAD_DIR=./uploads`。
 5. 部署完成后访问 `https://<render-service>.onrender.com/api/health`，应返回数据库连接正常状态。
 
-`render.yaml` 的启动脚本会在运行时执行迁移，这是因为 Render 的持久磁盘仅在运行时可访问。
+`render.yaml` 的启动脚本会在运行时执行 Prisma 迁移。
 
 ### 2. 部署前端到 Vercel
 
